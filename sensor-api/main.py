@@ -25,10 +25,10 @@ class Server(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(object).encode())
 
     def do_GET(self):
-        if self.path == "/":
+        if self.path == "/api/air":
             air = air_sensor.readAir()
             self.sendJSON({"status": "ok", "air": air.__dict__})
-        elif self.path == "/light":
+        elif self.path == "/api/light":
             light = light_sensor.readLight()
             self.sendJSON({"status": "ok", "light": light})
 
