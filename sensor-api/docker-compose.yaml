@@ -8,6 +8,7 @@ services:
     volumes:
       - ./air_sensor.py:/usr/src/app/air_sensor.py
       - ./light_sensor.py:/usr/src/app/light_sensor.py
+      - ./sound_sensor.py:/usr/src/app/sound_sensor.py
       - ./main.py:/usr/src/app/main.py
     ports:
       - '8080:8080'

@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from time import sleep
 from air_sensor import AirSensor
 from light_sensor import LightSensor
+from sound_sensor import SoundSensor
 import mimetypes
 import json
 import os
@@ -9,6 +10,7 @@ import textwrap
 
 air_sensor = AirSensor()
 light_sensor = LightSensor()
+sound_sensor = SoundSensor()
 
 host = "0.0.0.0"
 port = 8080
@@ -56,6 +58,9 @@ class Server(BaseHTTPRequestHandler):
         if self.path == "/metrics":
             air = air_sensor.readAir()
             light = light_sensor.readLight()
+            sound = sound_sensor.readSound()
+            sound_val = 1 if sound.get("sound_detected") else 0
+
             response = textwrap.dedent(f"""
                 # HELP sensor_light measured light itensity in lux\n\
                 # TYPE sensor_light gauge\n\
@@ -66,6 +71,9 @@ class Server(BaseHTTPRequestHandler):
                 # HELP sensor_air_humidity measured humidity in percent\n\
                 # TYPE sensor_air_humidity gauge\n\
                 sensor_air_humidity {air.humidity}
+                # HELP sensor_sound_detected binary sound detection flag (1 or 0)
+                # TYPE sensor_sound_detected gauge
+                sensor_sound_detected {sound_val}
             """)
 
             self.send_response(200)
@@ -103,6 +111,19 @@ class Server(BaseHTTPRequestHandler):
                         "label": "Illuminance",
                         "value": light_sensor.readLight(),
                         "unit": "lux",
+                    },
+                }
+            )
+
+        if self.path == "/api/sound":
+            sound = sound_sensor.readSound()
+            self.sendJSON(
+                {
+                    "status": "ok",
+                    "data": {
+                        "label": "Sound Detected",
+                        "value": sound.get("sound_detected", False),
+                        "unit": "boolean",
                     },
                 }
             )

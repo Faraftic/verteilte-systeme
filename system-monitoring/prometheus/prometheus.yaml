@@ -11,8 +11,9 @@ scrape_configs:
       - targets:
         - '172.17.0.1:9100'
         - 'RARasp09:9100'
-
-  - job_name: 'windows-exporter'
+        
+  - job_name: 'sensors'
+    scrape_interval: 5s
     static_configs:
       - targets:
-        - '10.5.61.252:9182'
+        - 'ncrasp05:8080'
