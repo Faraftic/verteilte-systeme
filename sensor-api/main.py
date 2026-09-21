@@ -4,6 +4,7 @@ from air_sensor import AirSensor
 from light_sensor import LightSensor
 from sound_sensor import SoundSensor
 from distance_sensor import DistanceSensor
+from touch_sensor import TouchSensor
 import mimetypes
 import threading
 import json
@@ -16,6 +17,8 @@ air_sensor = AirSensor()
 light_sensor = LightSensor()
 sound_sensor = SoundSensor()
 distance_sensor = DistanceSensor()
+touch_sensor = TouchSensor(11)
+touch_count = 0
 
 host = "0.0.0.0"
 port = 8080
@@ -75,7 +78,6 @@ class Server(BaseHTTPRequestHandler):
 
         if self.path == "/metrics":
             air = air_sensor.readAir()
-            mqtt_client.publish("NCRasp05/sensor/air", air, qos=2)
             light = light_sensor.readLight()
             sound = sound_sensor.readSound()
             sound_val = 1 if sound.get("sound_detected") else 0
@@ -154,6 +156,15 @@ def read_distance_sensor(delay):
         mqtt_client.publish("NCRasp05/sensor/distance", distance, qos=2)
         sleep(delay)
 
+def handle_touch(is_touched):
+    global touch_count
+    is_touched = not is_touched 
+    mqtt_client.publish("NCRasp05/sensor/touch/active", is_touched, qos=2)
+    if is_touched:
+        touch_count += 1
+        print("Touch Detected!")
+        mqtt_client.publish("NCRasp05/sensor/touch/count", touch_count, qos=2)
+
 def main():
     web_server = HTTPServer((host, port), Server)
     print(f"Server started and listen to {host}:{port}")
@@ -163,6 +174,8 @@ def main():
     )
 
     distanceSensorThread.start()
+
+    touch_sensor.start(handle_touch)
 
     try:
         mqtt_client.loop_start()
