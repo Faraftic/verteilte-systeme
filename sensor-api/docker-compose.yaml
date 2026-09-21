@@ -6,9 +6,6 @@ services:
       - "/dev/i2c-1:/dev/i2c-1"
     command: ['python', '-u', 'main.py']
     volumes:
-      - ./air_sensor.py:/usr/src/app/air_sensor.py
-      - ./light_sensor.py:/usr/src/app/light_sensor.py
-      - ./sound_sensor.py:/usr/src/app/sound_sensor.py
-      - ./main.py:/usr/src/app/main.py
+      - .:/usr/src/app/
     ports:
       - '8080:8080'

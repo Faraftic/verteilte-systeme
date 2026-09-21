@@ -3,17 +3,35 @@ from time import sleep
 from air_sensor import AirSensor
 from light_sensor import LightSensor
 from sound_sensor import SoundSensor
+from distance_sensor import DistanceSensor
 import mimetypes
+import threading
 import json
 import os
 import textwrap
 
+import paho.mqtt.client as mqtt
+
 air_sensor = AirSensor()
 light_sensor = LightSensor()
 sound_sensor = SoundSensor()
+distance_sensor = DistanceSensor()
 
 host = "0.0.0.0"
 port = 8080
+
+def on_connect(client, userdata, flags, reason_code, properites):
+    print(f"Connected to MQTT Broker with result {reason_code}")
+
+
+def on_message(client, userdata, msg: object):
+    print(msg.topic + " " + str(msg.payload))
+
+
+mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+mqtt_client.on_connect = on_connect
+mqtt_client.on_message = on_message
+mqtt_client.connect("172.17.0.1", 1883, 60)
 
 sleep(1)
 
@@ -57,6 +75,7 @@ class Server(BaseHTTPRequestHandler):
 
         if self.path == "/metrics":
             air = air_sensor.readAir()
+            mqtt_client.publish("NCRasp05/sensor/air", air, qos=2)
             light = light_sensor.readLight()
             sound = sound_sensor.readSound()
             sound_val = 1 if sound.get("sound_detected") else 0
@@ -129,11 +148,25 @@ class Server(BaseHTTPRequestHandler):
             )
 
 
+def read_distance_sensor(delay):
+    while True:
+        distance = distance_sensor.read()
+        mqtt_client.publish("NCRasp05/sensor/distance", distance, qos=2)
+        sleep(delay)
+
 def main():
     web_server = HTTPServer((host, port), Server)
     print(f"Server started and listen to {host}:{port}")
 
+    distanceSensorThread = threading.Thread(
+        target=read_distance_sensor, args=(0.3,), daemon=True
+    )
+
+    distanceSensorThread.start()
+
     try:
+        mqtt_client.loop_start()
+        mqtt_client.publish("NCRasp05/up", "true", qos=2)
         web_server.serve_forever()
     except KeyboardInterrupt:
         pass
