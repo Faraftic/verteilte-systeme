@@ -7,35 +7,78 @@
 </head>
 <body>
     <h1>Dashboard</h1>
-    <h2>MQTT-Broker</h2>
-    <p>Distance Sensor: <span id="distanceSensorValue"></span>cm</p>
-    <script src="mqtt.min.js"></script>
+    <h2>LED Matrix</h2>
+    <form id="matrixForm">
+        <label for="matrixMessage">Message to display (up to 200 characters):</label>
+        <input id="matrixMessage" name="message" type="text" maxlength="200" required>
+        <button id="sendMatrixMessage" type="submit" disabled>Send to matrix</button>
+    </form>
+    <p id="matrixStatus" role="status">Connecting to MQTT broker…</p>
+    <script src="/mqtt.min.js"></script>
     <script>
         console.log(mqtt);
 
         const distanceSensorValue = document.querySelector('#distanceSensorValue');
+        const touchSensorValue = document.querySelector('#touchSensorValue');
+        const matrixForm = document.querySelector('#matrixForm');
+        const matrixMessage = document.querySelector('#matrixMessage');
+        const sendMatrixMessage = document.querySelector('#sendMatrixMessage');
+        const matrixStatus = document.querySelector('#matrixStatus');
 
-        const broker = `ws://${window.location.host}:9001`
+        const broker = `ws://${window.location.hostname}:9001`
         const mqttClient = mqtt.connect(broker, {});
         mqttClient.on('connect', () => {
             console.log('connected');
+            sendMatrixMessage.disabled = false;
+            matrixStatus.textContent = 'Connected. Enter a message to scroll it on the matrix.';
             mqttClient.subscribe('NCRasp05/#', err => {
                 if (err) console.error(err);
             });
         })
 
+        mqttClient.on('reconnect', () => {
+            sendMatrixMessage.disabled = true;
+            matrixStatus.textContent = 'Reconnecting to MQTT broker…';
+        });
+
+        mqttClient.on('offline', () => {
+            sendMatrixMessage.disabled = true;
+            matrixStatus.textContent = 'MQTT broker is offline.';
+        });
+
+        matrixForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const message = matrixMessage.value.trim();
+            if (!message) return;
+
+            mqttClient.publish('NCRasp05/matrix/message', message, { qos: 1 }, err => {
+                if (err) {
+                    matrixStatus.textContent = 'Could not send the message.';
+                    console.error(err);
+                    return;
+                }
+                matrixStatus.textContent = 'Message sent to the LED matrix.';
+                matrixMessage.value = '';
+            });
+        });
+
         mqttClient.on('message', (topic, message) => {
             console.log(`got message from topic ${topic}: ${message}`);
             switch (topic) {
-                case 'NCRasp05/sensor/distance':
+                case 'NCRasp05/sensors/distance':
                     distanceSensorValue.textContent = parseFloat(message);
                     break;
-            
+
+                case 'NCRasp05/sensors/touch':
+                    console.log(`Touch sensor state: ${message}`);
+                    touchSensorValue.textContent = message;
+                    break;
                 default:
                     break;
             }
         })
 
     </script>
+    <h4><a href="http://ncrasp05:8080/metrics">Sensor Metrics</a></h4>
 </body>
 </html>
