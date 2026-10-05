@@ -20,10 +20,11 @@ sudo docker compose up -d --build
 Open the Console with CTRL + J and navigate to Nils@NCRasp05:~/Mod321/sensor-api
 sudo docker compose up -d --build
 
+Note: The Sensor-API compose file also starts the LCD display service (`lcd`). It subscribes to the MQTT topic `NCRasp05/sensors/air` and displays the current temperature and humidity on the 16x2 I2C display.
+
 6. Start System-Monitoring
 Open the Console with CTRL + J and navigate to Nils@NCRasp05:~/Mod321/system-monitoring
 sudo docker compose up -d --build
-
 
 **Frontend-Endpoints**
 
@@ -37,4 +38,3 @@ http://ncrasp:3000
 
 **Dashboard**
 http://ncrasp05:80
-
