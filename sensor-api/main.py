@@ -154,6 +154,45 @@ class Server(BaseHTTPRequestHandler):
                 }
             )
 
+        if self.path == "/api/distance":
+            distance = distance_sensor.read()
+            self.sendJSON(
+                {
+                    "status": "ok",
+                    "data": {
+                        "label": "Distance",
+                        "value": distance,
+                        "unit": "cm",
+                    },
+                }
+            )
+
+        if self.path == "/api/motion":
+            motion = motion_sensor.readMotion()
+            self.sendJSON(
+                {
+                    "status": "ok",
+                    "data": {
+                        "label": "Motion Detected",
+                        "value": motion.get("motion_detected", False),
+                        "unit": "boolean",
+                    },
+                }
+            )
+
+        if self.path == "/api/touch":
+            touch = touch_sensor.readTouch()
+            self.sendJSON(
+                {
+                    "status": "ok",
+                    "data": {
+                        "label": "Touch Detected",
+                        "value": bool(touch),
+                        "unit": "boolean",
+                    },
+                }
+            )
+
 
 def read_distance_sensor(delay):
     while True:

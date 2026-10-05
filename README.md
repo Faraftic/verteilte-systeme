@@ -27,10 +27,15 @@ sudo docker compose up -d --build
 
 **Frontend-Endpoints**
 
+Metrics-Page: http://ncrasp:8080/metrics
+
 **Sensor-APIs**
 http://ncrasp05:8080/api/air
 http://ncrasp05:8080/api/light
 http://ncrasp05:8080/api/sound
+http://ncrasp05:8080/api/distance
+http://ncrasp05:8080/api/touch
+http://ncrasp05:8080/api/motion
 
 **Grafana**
 http://ncrasp:3000
