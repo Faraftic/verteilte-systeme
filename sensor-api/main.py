@@ -23,6 +23,7 @@ touch_count = 0
 host = "0.0.0.0"
 port = 8080
 
+
 def on_connect(client, userdata, flags, reason_code, properites):
     print(f"Connected to MQTT Broker with result {reason_code}")
 
@@ -107,7 +108,6 @@ class Server(BaseHTTPRequestHandler):
 
             self.wfile.write(response.encode())
 
-
         if self.path == "/api/air":
             air = air_sensor.readAir()
             self.sendJSON(
@@ -156,14 +156,29 @@ def read_distance_sensor(delay):
         mqtt_client.publish("NCRasp05/sensor/distance", distance, qos=2)
         sleep(delay)
 
+
+def publish_air_readings(delay=2):
+    while True:
+        air = air_sensor.readAir()
+        if air and air.is_valid():
+            mqtt_client.publish(
+                "NCRasp05/sensors/air",
+                json.dumps({"temperature": air.temperature, "humidity": air.humidity}),
+                qos=1,
+                retain=True,
+            )
+        sleep(delay)
+
+
 def handle_touch(is_touched):
     global touch_count
-    is_touched = not is_touched 
+    is_touched = not is_touched
     mqtt_client.publish("NCRasp05/sensor/touch/active", is_touched, qos=2)
     if is_touched:
         touch_count += 1
         print("Touch Detected!")
         mqtt_client.publish("NCRasp05/sensor/touch/count", touch_count, qos=2)
+
 
 def main():
     web_server = HTTPServer((host, port), Server)
@@ -174,6 +189,9 @@ def main():
     )
 
     distanceSensorThread.start()
+
+    airSensorThread = threading.Thread(target=publish_air_readings, daemon=True)
+    airSensorThread.start()
 
     touch_sensor.start(handle_touch)
 
@@ -189,4 +207,3 @@ if __name__ == "__main__":
     main()
 
 print("Server stopped")
- 
