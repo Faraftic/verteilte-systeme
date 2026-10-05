@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="3">
+    <title>Sensor Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 30px;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            max-width: 400px;
+        }
+        li {
+            background: white;
+            margin: 8px 0;
+            padding: 12px 16px;
+            border-radius: 6px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+    <h1>NCRasp05 Sensors</h1>
+    <ul>
+        <li><b>Temperatur:</b> {temperature} °C</li>
+        <li><b>Luftfeuchtigkeit:</b> {humidity} %</li>
+        <li><b>Helligkeit:</b> {light} Lux</li>
+        <li><b>Distanz:</b> {distance}</li>
+        <li><b>Geräusch:</b> {sound}</li>
+        <li><b>Bewegung:</b> {motion}</li>
+        <li><b>Touch:</b> {touch}</li>
+    </ul>
+</body>
+</html>
