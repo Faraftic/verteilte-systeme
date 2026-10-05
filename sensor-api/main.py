@@ -2,6 +2,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from time import sleep
 from air_sensor import AirSensor
 from light_sensor import LightSensor
+from motion_sensor import MotionSensor
 from sound_sensor import SoundSensor
 from distance_sensor import DistanceSensor
 from touch_sensor import TouchSensor
@@ -17,6 +18,7 @@ air_sensor = AirSensor()
 light_sensor = LightSensor()
 sound_sensor = SoundSensor()
 distance_sensor = DistanceSensor()
+motion_sensor = MotionSensor()
 touch_sensor = TouchSensor(11)
 touch_count = 0
 
@@ -81,32 +83,35 @@ class Server(BaseHTTPRequestHandler):
             air = air_sensor.readAir()
             light = light_sensor.readLight()
             sound = sound_sensor.readSound()
-            sound_val = 1 if sound.get("sound_detected") else 0
+            motion = motion_sensor.readMotion()
+            touch = touch_sensor.readTouch()
+            distance = distance_sensor.read()
 
-            response = textwrap.dedent(f"""
-                # HELP sensor_light measured light itensity in lux\n\
-                # TYPE sensor_light gauge\n\
-                sensor_light {light}\n\
-                # HELP sensor_air_temperature measured temperature in celcius\n\
-                # TYPE sensor_air_temperature gauge\n\
-                sensor_air_temperature {air.temperature}\n\
-                # HELP sensor_air_humidity measured humidity in percent\n\
-                # TYPE sensor_air_humidity gauge\n\
-                sensor_air_humidity {air.humidity}
-                # HELP sensor_sound_detected binary sound detection flag (1 or 0)
-                # TYPE sensor_sound_detected gauge
-                sensor_sound_detected {sound_val}
-            """)
+            #Better metrics page with HTML template rendering
+            with open("metrics.html", "r", encoding="utf-8") as f:
+                html = f.read()
+
+            html = (
+                html.replace("{temperature}", str(air.temperature))
+                .replace("{humidity}", str(air.humidity))
+                .replace("{light}", str(light))
+                .replace(
+                    "{distance}",
+                    f"{distance} cm" if distance != -1 else "Außer Reichweite",
+                )
+                .replace(
+                    "{sound}", "Ja" if sound.get("sound_detected") else "Nein"
+                )
+                .replace(
+                    "{motion}", "Ja" if motion.get("motion_detected") else "Nein"
+                )
+                .replace("{touch}", "Nein" if touch else "Ja")
+            )
 
             self.send_response(200)
-            self.send_header("Access-Control-Allow-Origin", "*")
-            self.send_header("Access-Control-Allow-Methods", "*")
-            self.send_header("Access-Control-Allow-Headers", "*")
-            self.send_header("Vary", "Origin")
-            self.send_header("Content-type", "text/plain")
+            self.send_header("Content-type", "text/html; charset=utf-8")
             self.end_headers()
-
-            self.wfile.write(response.encode())
+            self.wfile.write(html.encode("utf-8"))
 
         if self.path == "/api/air":
             air = air_sensor.readAir()

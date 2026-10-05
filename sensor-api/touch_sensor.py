@@ -12,6 +12,9 @@ class TouchSensor:
         GPIO.setmode(GPIO.BOARD)
         GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
+    def readTouch(self) -> bool:
+        return GPIO.input(self.pin) == GPIO.LOW
+
     def _internal_callback(self, channel: int):
         is_touched = GPIO.input(channel) == GPIO.LOW
 
