@@ -22,3 +22,14 @@ services:
     command: [ 'python', '-u', 'lcd_display.py' ]
     volumes:
       - .:/usr/src/app/
+
+  matrix:
+    build:
+      context: .
+      dockerfile: lgpio.Dockerfile
+    privileged: true
+    devices:
+      - "/dev/spidev0.1:/dev/spidev0.1"
+    command: [ 'python', '-u', 'led_matrix.py' ]
+    volumes:
+      - .:/usr/src/app/
