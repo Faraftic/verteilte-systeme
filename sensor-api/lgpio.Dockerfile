@@ -16,7 +16,7 @@ RUN make
 
 RUN make install
 
-RUN pip install smbus paho-mqtt rpi-lgpio
+RUN pip install smbus paho-mqtt rpi-lgpio adafruit-blinka adafruit-circuitpython-charlcd
 
 RUN pip install dht11 --no-deps
 

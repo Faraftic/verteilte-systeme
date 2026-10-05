@@ -4,10 +4,21 @@ services:
       context: .
       dockerfile: lgpio.Dockerfile
     privileged: true
-    devices: 
+    devices:
       - "/dev/i2c-1:/dev/i2c-1"
-    command: ['python', '-u', 'main.py']
+    command: [ 'python', '-u', 'main.py' ]
     volumes:
       - .:/usr/src/app/
     ports:
       - '8080:8080'
+
+  lcd:
+    build:
+      context: .
+      dockerfile: lgpio.Dockerfile
+    privileged: true
+    devices:
+      - "/dev/i2c-1:/dev/i2c-1"
+    command: [ 'python', '-u', 'lcd_display.py' ]
+    volumes:
+      - .:/usr/src/app/
